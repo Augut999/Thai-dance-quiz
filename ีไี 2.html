@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>เกมนาฏศิลป์ ม.3</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #e0f2f1;
+      color: #004d40;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      margin-top: 30px;
+      font-size: 2.5rem;
+      color: #00796b;
+      text-align: center;
+    }
+
+    #score {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      background: #ffffff;
+      color: #00796b;
+      font-weight: 700;
+      font-size: 1.5rem;
+      padding: 10px 20px;
+      border-radius: 30px;
+      box-shadow: 0 0 8px rgba(0, 121, 107, 0.3);
+      user-select: none;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    #game-container {
+      margin-top: 50px;
+      width: 100%;
+      max-width: 500px;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      padding: 25px 30px;
+      box-sizing: border-box;
+      user-select: none;
+      display: none;
+    }
+
+    #question {
+      font-size: 1.3rem;
+      margin-bottom: 25px;
+      min-height: 80px;
+    }
+
+    .choice-btn {
+      width: 100%;
+      background: #b2dfdb;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 20px;
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+      color: #004d40;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease, transform 0.15s ease-in-out;
+    }
+
+    .choice-btn:hover {
+      background: #80cbc4;
+    }
+
+    .choice-btn:active {
+      transform: scale(1.05);
+    }
+
+    .correct {
+      background-color: #4db6ac !important;
+      color: white !important;
+      font-weight: 700;
+    }
+
+    .wrong {
+      background-color: #ef9a9a !important;
+      color: white !important;
+      font-weight: 700;
+    }
+
+    #result {
+      font-size: 1.2rem;
+      height: 30px;
+      margin-top: 10px;
+      color: #00796b;
+      font-weight: 700;
+    }
+
+    #rules-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 121, 107, 0.85);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 30px;
+      z-index: 9999;
+    }
+
+    #rules-box {
+      background: #004d40;
+      border-radius: 20px;
+      padding: 25px 35px;
+      max-width: 400px;
+      color: white;
+      text-align: center;
+    }
+
+    #rules-box ul {
+      text-align: left;
+      margin: 15px 0 25px 20px;
+    }
+
+    #start-game {
+      background: #80cbc4;
+      color: #004d40;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 25px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      font-size: 1.1rem;
+      transition: background-color 0.3s ease;
+    }
+
+    #start-game:hover {
+      background: #4db6ac;
+    }
+
+    #restart-btn {
+      background: #00796b;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      padding: 12px 30px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: block;
+      margin: 30px auto 0;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🎭 เกมตอบปัญหานาฏศิลป์ ม.3 🎯</h1>
+
+<div id="score">คะแนน: 0</div>
+
+<div id="game-container">
+  <div id="question">คำถามจะอยู่ตรงนี้</div>
+  <button class="choice-btn" id="btnA" onclick="checkAnswer('A')">A</button>
+  <button class="choice-btn" id="btnB" onclick="checkAnswer('B')">B</button>
+  <button class="choice-btn" id="btnC" onclick="checkAnswer('C')">C</button>
+  <button class="choice-btn" id="btnD" onclick="checkAnswer('D')">D</button>
+  <div id="result"></div>
+</div>
+
+<div id="rules-overlay">
+  <div id="rules-box">
+    <h2>กฎของเกม</h2>
+    <ul>
+      <li>มีคำถามทั้งหมด 10 ข้อ</li>
+      <li>เลือกคำตอบที่ถูกต้องจาก 4 ตัวเลือก</li>
+      <li>ตอบถูกได้ 100 คะแนน</li>
+      <li>คะแนนจะสะสมอัตโนมัติ</li>
+    </ul>
+    <button id="start-game">เริ่มเล่น</button>
+  </div>
+</div>
+
+<audio id="cheerSound" src="https://actions.google.com/sounds/v1/human_voices/cheer.ogg" preload="auto"></audio>
+
+<script>
+  const questions = [
+    { q: "นาฏศิลป์ไทยแบ่งออกเป็นกี่ประเภทหลัก", choices: { A: "2", B: "3", C: "4", D: "5" }, answer: "C" },
+    { q: "โขนเกิดขึ้นในสมัยใด", choices: { A: "อยุธยา", B: "รัตนโกสินทร์", C: "สุโขทัย", D: "ธนบุรี" }, answer: "A" },
+    { q: "ละครรำแบ่งเป็นกี่รูปแบบ", choices: { A: "2", B: "3", C: "4", D: "5" }, answer: "B" },
+    { q: "เครื่องแต่งกายโขนมีอะไรบ้าง", choices: { A: "ผ้า หน้ากาก ศีรษะ", B: "รองเท้า", C: "ผ้าคลุม", D: "กางเกง" }, answer: "A" },
+    { q: "ฟ้อนเจิงคือการฟ้อนของภาคใด", choices: { A: "เหนือ", B: "ใต้", C: "อีสาน", D: "กลาง" }, answer: "A" },
+    { q: "ระบำต้อนรับมีวัตถุประสงค์ใด", choices: { A: "ต้อนรับแขก", B: "บวงสรวง", C: "เล่าเรื่อง", D: "สอนธรรมะ" }, answer: "A" },
+    { q: "เพลงพาทย์หลวงประกอบด้วยอะไร", choices: { A: "โหมโรง หลัก ส่งท้าย", B: "ต้น กลาง ท้าย", C: "แนะนำ", D: "เปิด-ปิด" }, answer: "A" },
+    { q: "ท่ารำเบื้องต้นมีทั้งหมดกี่ท่า", choices: { A: "4", B: "5", C: "6", D: "3" }, answer: "A" },
+    { q: "หน้าที่ของพี่เลี้ยงนักแสดงคืออะไร", choices: { A: "สอนรำ", B: "ดูแลท่าทาง", C: "หาเสื้อผ้า", D: "แต่งบท" }, answer: "B" },
+    { q: "ดนตรีประกอบละครรำใช้เครื่องใด", choices: { A: "ระนาด ปี่ ฆ้อง กลอง", B: "ซอ", C: "ฉิ่ง", D: "ไวโอลิน" }, answer: "A" }
+  ];
+
+  let current = 0;
+  let score = 0;
+  let answered = false;
+
+  const questionEl = document.getElementById("question");
+  const scoreEl = document.getElementById("score");
+  const cheerSound = document.getElementById("cheerSound");
+
+  const buttons = {
+    A: document.getElementById("btnA"),
+    B: document.getElementById("btnB"),
+    C: document.getElementById("btnC"),
+    D: document.getElementById("btnD"),
+  };
+
+  const resultEl = document.getElementById("result");
+
+  function showQuestion() {
+    answered = false;
+    const q = questions[current];
+    questionEl.innerText = q.q;
+    buttons.A.innerText = "A: " + q.choices.A;
+    buttons.B.innerText = "B: " + q.choices.B;
+    buttons.C.innerText = "C: " + q.choices.C;
+    buttons.D.innerText = "D: " + q.choices.D;
+
+    for (let key in buttons) {
+      buttons[key].disabled = false;
+      buttons[key].classList.remove("correct", "wrong");
+    }
+    resultEl.innerText = "";
+  }
+
+  function checkAnswer(choice) {
+    if (answered) return;
+    answered = true;
+    const correct = questions[current].answer;
+
+    if (choice === correct) {
+      score += 100;
+      resultEl.innerText = "✅ ตอบถูก!";
+      buttons[choice].classList.add("correct");
+      cheerSound.play();
+    } else {
+      resultEl.innerText = `❌ ผิด! คำตอบที่ถูกคือ ${correct}`;
+      buttons[choice].classList.add("wrong");
+      buttons[correct].classList.add("correct");
+    }
+
+    for (let key in buttons) {
+      buttons[key].disabled = true;
+    }
+
+    scoreEl.innerText = `คะแนน: ${score}`;
+    current++;
+    if (current < questions.length) {
+      setTimeout(showQuestion, 1800);
+    } else {
+      setTimeout(() => {
+        document.getElementById("game-container").innerHTML = `
+          <h2>🎉 จบเกมแล้ว!</h2>
+          <p>คะแนนรวมของคุณคือ ${score}</p>
+          <button id="restart-btn" onclick="location.reload()">🔁 เล่นใหม่</button>
+        `;
+      }, 1800);
+    }
+  }
+
+  document.getElementById("start-game").onclick = () => {
+    document.getElementById("rules-overlay").style.display = "none";
+    document.getElementById("game-container").style.display = "block";
+    showQuestion();
+  };
+</script>
+
+</body>
+</html>
